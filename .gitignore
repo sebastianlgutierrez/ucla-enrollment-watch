@@ -1,0 +1,6 @@
+# .env files
+.env
+!.env.example
+
+# .venv virtual python environments
+.venv/
