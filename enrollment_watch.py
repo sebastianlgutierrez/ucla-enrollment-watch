@@ -1,9 +1,9 @@
 import time, re
 from playwright.sync_api import sync_playwright
 
-def run_playwright(url, subject, class_name, lecture=None, discussion=None):
+def run_playwright(url, term, subject, class_name, lecture=None, discussion=None):
     with sync_playwright() as playwright:
-        with playwright.chromium.launch(headless=True) as browser:
+        with playwright.chromium.launch(headless=False) as browser:
             # Load the schedule of classes page
             page = browser.new_page(
                 java_script_enabled=True,
@@ -11,6 +11,8 @@ def run_playwright(url, subject, class_name, lecture=None, discussion=None):
             )
             page.goto(url)
             # Fetch the class data 
+            page.get_by_role("combobox", name="Term:").select_option(label=term)
+            time.sleep(1)
             page.get_by_role(
                 'combobox',
                 name='Enter Subject Area (Required)').fill(subject)
@@ -40,19 +42,20 @@ def run_playwright(url, subject, class_name, lecture=None, discussion=None):
                 page.get_by_role(
                 'link', name=lecture)
                 status = False if page.get_by_role('paragraph', name='Closed') else True
-            time.sleep(2)
+            time.sleep(1)
             page.close()
             return status
 
 def main():
     # Set main variables to scan classes
     URL = 'https://sa.ucla.edu/ro/public/soc'
+    TERM = 'Winter 2027'
     SUBJECT = 'Statistics (STATS)'
     CLASS_NAME = '100A'
     LECTURE = '1'
-    if (LECTURE and run_playwright(URL, SUBJECT, CLASS_NAME, LECTURE)):
+    if (LECTURE and run_playwright(URL, TERM, SUBJECT, CLASS_NAME, LECTURE)):
         print('Lecture ' + LECTURE + ' of ' + SUBJECT + ' ' + CLASS_NAME + ' is open for enrollment.')
-    elif (run_playwright(URL, SUBJECT, CLASS_NAME)):
+    elif (run_playwright(URL, TERM, SUBJECT, CLASS_NAME)):
         print(SUBJECT + ' ' + CLASS_NAME + ' is currently available for enrollment.')
     else:
         print(SUBJECT + ' ' + CLASS_NAME + ' is currently unavailable for enrollment.')
